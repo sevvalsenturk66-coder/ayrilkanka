@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFC2DD">
+<meta name="description" content="Ayrıl Kanka: kız gecesinin kırmızı bayrak oyunu. Kart çek, yaşadıysan puanı al, 400'e ilk ulaşan kaybeder.">
+<meta property="og:title" content="Ayrıl Kanka!">
+<meta property="og:description" content="Kız gecesinin kırmızı bayrak oyunu.">
+<meta property="og:image" content="icons/og.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ayrıl Kanka">
+<title>Ayrıl Kanka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Outfit:wght@400;500;600;800&family=Caveat:wght@700&display=swap">
+<style>
+/* Layout: one phone-sized table; scoreboard on top, sticker-style deck in the middle, verdict buttons below. */
+:root{
+  --pink:#FFC2DD;       /* Pamuk Şeker – zemin */
+  --pink-2:#F7A6CA;
+  --cherry:#E5194A;     /* Kiraz – kırmızı bayrak */
+  --ink:#4A0A23;        /* Gece Bordo – yazı, çizgi, gölge */
+  --butter:#FFE36E;     /* Tereyağı – puan, sticker */
+  --lilac:#C9B6FF;      /* Lila Oje – challenge */
+  --paper:#FFFFFF;
+  --soft:#FFF4F8;
+  --muted:#7A2D4C;
+  --display:"Shrikhand", "Cooper Black", Georgia, serif;
+  --body:"Outfit", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --hand:"Caveat", "Bradley Hand", cursive;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{
+  background:var(--pink);color:var(--ink);font-family:var(--body);font-size:15px;
+  -webkit-tap-highlight-color:transparent;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cpath d='M30 14Q33 27 46 30Q33 33 30 46Q27 33 14 30Q27 27 30 14Z' fill='%23ffffff' fill-opacity='.55'/%3E%3Cpath d='M98 84c-7-6-12-10-10-16 1-4 6-6 10-2 4-4 9-2 10 2 2 6-3 10-10 16z' fill='%23E5194A' fill-opacity='.13' transform='rotate(18 98 72)'/%3E%3C/svg%3E");
+}
+.app{
+  max-width:440px;margin:0 auto;min-height:100%;
+  display:flex;flex-direction:column;gap:18px;
+  padding-block:20px 28px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  box-sizing:border-box;
+}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:400;font-synthesis:none;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+.hand{font-family:var(--hand);font-weight:700}
+.sticker{-webkit-text-stroke:8px #fff;paint-order:stroke fill;text-shadow:4px 5px 0 var(--ink)}
+
+/* Buttons */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:54px;padding:0 22px;border-radius:999px;border:3px solid var(--ink);
+  font-weight:800;font-size:16px;transition:transform .12s ease, box-shadow .12s ease;
+}
+.btn-wine{background:var(--cherry);color:#fff;box-shadow:0 5px 0 var(--ink)}
+.btn-wine:active{box-shadow:0 1px 0 var(--ink);transform:translateY(4px)}
+.btn-ghost{background:var(--paper);color:var(--ink);box-shadow:0 5px 0 var(--ink)}
+.btn-ghost:active{box-shadow:0 1px 0 var(--ink);transform:translateY(4px)}
+.btn-link{border:0;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:4px;min-height:44px}
+.btn[disabled]{opacity:.4;pointer-events:none}
+
+/* ---------- Home ---------- */
+.home{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center}
+.logo{width:min(48vw,170px);aspect-ratio:150/170;max-width:100%;animation:wave 3.2s ease-in-out infinite;transform-origin:20% 90%}
+@keyframes wave{0%,100%{transform:rotate(0)}50%{transform:rotate(-6deg)}}
+.home h1{font-size:clamp(58px,18vw,84px);line-height:.88;color:var(--cherry);transform:rotate(-5deg)}
+.home h1 span{display:block}
+.home h1 span+span{padding-left:.5em}
+.home .tag{max-width:30ch;line-height:1.5;font-weight:500}
+.home .hand{font-size:28px;color:var(--ink);transform:rotate(-2deg)}
+.home .actions{display:flex;flex-direction:column;gap:14px;width:100%;max-width:300px}
+
+/* ---------- Sheets (setup / rules) ---------- */
+.sheet{background:var(--paper);border:3px solid var(--ink);border-radius:28px;padding:24px 20px;display:flex;flex-direction:column;gap:18px;box-shadow:6px 7px 0 var(--ink)}
+.sheet h2{font-size:32px;color:var(--cherry)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.back{min-height:44px;min-width:44px;display:flex;align-items:center;gap:6px;color:var(--ink);font-weight:800}
+.players{display:flex;flex-direction:column;gap:10px}
+.prow{display:flex;gap:8px;align-items:center}
+.prow input{
+  flex:1;min-width:0;height:48px;border-radius:14px;border:2px solid var(--ink);
+  background:var(--soft);padding:0 14px;font:inherit;font-size:16px;font-weight:600;color:var(--ink)
+}
+.prow .dot{width:14px;height:14px;border-radius:50%;flex:none;border:2px solid var(--ink)}
+.prow button{width:44px;height:44px;border-radius:12px;color:var(--muted);font-size:24px;line-height:1}
+.field{display:flex;flex-direction:column;gap:8px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--soft);padding:4px;border-radius:16px;border:2px solid var(--ink)}
+.seg button{min-height:42px;border-radius:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.seg button[aria-pressed="true"]{background:var(--butter);color:var(--ink);font-weight:800}
+.hint{font-size:13px;color:var(--muted);line-height:1.45}
+.seg.four{grid-template-columns:repeat(4,1fr)}
+textarea#cc-text{width:100%;box-sizing:border-box;border-radius:14px;border:2px solid var(--ink);background:var(--soft);padding:10px 14px;font:inherit;font-size:16px;color:var(--ink);resize:vertical}
+.ccrow{display:grid;grid-template-columns:40px 1fr 40px;gap:8px;align-items:center;background:var(--soft);border-radius:12px;padding:6px 6px 6px 10px;font-size:14px;line-height:1.35}
+.ccrow b{font-family:var(--display);font-weight:400;color:var(--cherry);font-size:18px}
+.ccrow button{width:40px;height:40px;color:var(--muted);font-size:20px}
+.snd{min-height:40px;padding:0 14px;border-radius:999px;border:2px solid var(--ink);background:var(--paper);font-size:13px;font-weight:800}
+.snd[aria-pressed="false"]{background:transparent;color:var(--muted)}
+.rules{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none;counter-reset:r}
+.rules li{display:grid;grid-template-columns:30px 1fr;gap:10px;line-height:1.5;counter-increment:r}
+.rules li::before{content:counter(r);font-family:var(--display);font-size:24px;color:var(--cherry);line-height:1.1}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.tier{border-radius:14px;padding:10px 4px;text-align:center;font-size:11px;line-height:1.3;font-weight:600;border:2px solid var(--ink)}
+.tier b{display:block;font-family:var(--display);font-weight:400;font-size:22px}
+
+/* ---------- Game ---------- */
+.board{display:flex;gap:8px;overflow-x:auto;padding:2px 4px 8px;scrollbar-width:none;margin-inline:-4px}
+.board::-webkit-scrollbar{display:none}
+.chip{
+  flex:1 0 auto;min-width:88px;background:var(--paper);border-radius:16px;padding:10px 12px 12px;
+  display:flex;flex-direction:column;gap:6px;border:2px solid var(--ink);transition:transform .25s, background .25s, box-shadow .25s
+}
+.chip.on{background:var(--butter);transform:translateY(-2px);box-shadow:3px 4px 0 var(--ink)}
+.chip .nm{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.chip .sc{font-family:var(--display);font-size:22px;color:var(--cherry);font-variant-numeric:tabular-nums;line-height:1}
+.chip .sc small{font-family:var(--body);font-size:11px;font-weight:500;color:var(--muted)}
+.bar{height:6px;border-radius:6px;background:var(--soft);overflow:hidden;border:1px solid var(--ink)}
+.bar i{display:block;height:100%;background:var(--cherry);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+.turn{text-align:center;display:flex;flex-direction:column;gap:4px}
+.turn h2{font-size:30px;color:var(--cherry);transform:rotate(-2deg)}
+.turn h2 em{font-style:normal;color:var(--ink)}
+
+.table{position:relative;display:grid;place-items:center;flex:1;min-height:370px;perspective:1400px}
+.stack{position:absolute;width:min(66vw,246px);aspect-ratio:5/7;max-width:100%}
+.stack span{position:absolute;inset:0;border-radius:22px;background:var(--cherry);border:3px solid var(--ink)}
+.stack span:nth-child(1){transform:translate(8px,10px) rotate(5deg);background:var(--lilac)}
+.stack span:nth-child(2){transform:translate(-6px,6px) rotate(-4deg);background:var(--butter)}
+.card{
+  position:relative;width:min(66vw,246px);aspect-ratio:5/7;max-width:100%;
+  transform-style:preserve-3d;transition:transform .7s cubic-bezier(.2,.75,.25,1);
+}
+.card.flip{transform:rotateY(180deg)}
+.face{
+  position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  overflow:hidden;border:3px solid var(--ink);box-shadow:6px 8px 0 var(--ink);box-sizing:border-box;
+}
+.back-face{background:var(--cherry);display:grid;place-items:center}
+.back-face svg{position:absolute;inset:0;width:100%;height:100%}
+.back-face .bw{position:relative;font-family:var(--display);color:#fff;font-size:clamp(40px,12vw,50px);line-height:.9;text-align:center;transform:rotate(-7deg)}
+.back-face .bw span{display:block}
+.back-face .bw span+span{padding-left:.5em}
+button.card-btn{all:unset;cursor:pointer;display:block;border-radius:22px}
+button.card-btn:focus-visible{outline:3px solid var(--ink);outline-offset:8px}
+.front-face{
+  transform:rotateY(180deg);background:var(--paper);
+  display:flex;flex-direction:column;padding:18px 18px 16px;
+}
+.front-face .pts{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.front-face .pts b{width:58px;height:58px;border-radius:50%;background:var(--butter);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:400;font-size:24px;color:var(--ink);flex:none}
+.front-face .pts span{font-family:var(--hand);font-weight:700;font-size:24px;color:var(--cherry);transform:rotate(-6deg);text-align:right;line-height:1}
+.front-face .txt{flex:1;display:flex;align-items:center;text-align:left;
+  font-family:var(--body);font-weight:800;font-size:clamp(19px,5.6vw,22px);line-height:1.25;color:var(--ink);text-wrap:pretty;padding:6px 2px}
+.front-face .foot{display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;font-weight:600;color:var(--muted)}
+.front-face .foot svg{width:30px;height:34px}
+/* tier tints */
+.t15 .front-face{background:var(--soft)}
+.t20 .front-face{background:#FFE3EF}
+.t50 .front-face{background:var(--cherry)}
+.t50 .front-face .txt{color:#fff}
+.t50 .front-face .pts span{color:var(--butter)}
+.t50 .front-face .foot{color:#fff}
+.t50 .front-face .foot .fl{fill:var(--butter)}
+
+.tap-hint{position:absolute;bottom:-6px;font-family:var(--hand);font-weight:700;font-size:22px;color:var(--ink);text-align:center;width:100%}
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.verdict .btn{padding:0 12px;font-size:15px}
+.verdict .btn small{font-weight:600;opacity:.9}
+.foot-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted);font-weight:500}
+.foot-row button{min-height:44px;color:var(--ink);font-weight:800}
+
+/* float score */
+.plus{position:absolute;left:50%;top:38%;transform:translate(-50%,0);font-family:var(--display);font-size:64px;color:var(--cherry);pointer-events:none;animation:plus 1s ease-out forwards;-webkit-text-stroke:8px #fff;paint-order:stroke fill;text-shadow:4px 5px 0 var(--ink)}
+@keyframes plus{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}20%{opacity:1;transform:translate(-50%,0) scale(1.15) rotate(-6deg)}100%{opacity:0;transform:translate(-50%,-90px) scale(1) rotate(-6deg)}}
+
+/* ---------- Overlay (challenge / end) ---------- */
+.overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:rgba(74,10,35,.6);
+  padding:max(20px, env(safe-area-inset-top,0px)) max(16px, env(safe-area-inset-right,0px)) max(20px, env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px));
+  animation:fade .25s ease;overflow-y:auto}
+@keyframes fade{from{opacity:0}}
+.modal{width:100%;max-width:380px;border-radius:28px;padding:26px 22px 22px;display:flex;flex-direction:column;gap:16px;text-align:center;border:3px solid var(--ink);box-shadow:7px 9px 0 var(--ink);animation:pop .45s cubic-bezier(.2,.9,.25,1.2);box-sizing:border-box}
+@keyframes pop{from{transform:scale(.85) rotate(-3deg);opacity:0}}
+.modal.challenge{background:var(--lilac);color:var(--ink)}
+.modal.challenge .tagc{align-self:center;background:var(--ink);color:var(--lilac);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:800;letter-spacing:.14em}
+.modal.challenge h3{font-family:var(--body);font-size:24px;line-height:1.25;font-weight:800}
+.modal.challenge .who{font-family:var(--hand);font-weight:700;font-size:26px}
+.modal.end{background:var(--paper)}
+.modal.handoff{background:var(--butter)}
+.modal.handoff h2{font-size:clamp(44px,13vw,56px);color:var(--cherry);transform:rotate(-4deg);overflow-wrap:anywhere}
+.modal.end h2{font-size:clamp(50px,15vw,64px);color:var(--cherry);line-height:.9;transform:rotate(-5deg);margin-block:6px}
+.modal.end h2 span{display:block}
+.modal.end h2 span+span{padding-left:.5em}
+.modal.end .loser{font-size:17px;line-height:1.5}
+.dare{background:var(--butter);border:2px solid var(--ink);border-radius:18px;padding:14px 16px;text-align:left;line-height:1.5;font-size:14px}
+.dare b{display:block;font-family:var(--display);font-weight:400;font-size:19px;margin-bottom:4px}
+.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;text-align:left}
+.rank li{display:flex;justify-content:space-between;padding:9px 12px;border-radius:12px;background:var(--soft);font-weight:600;font-variant-numeric:tabular-nums}
+.rank li:last-child{background:var(--cherry);color:#fff}
+.modal .row{display:flex;flex-direction:column;gap:12px}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+  :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<script>
+/* Deste: Şevval ile birlikte yazılan 60 kart + 16 challenge (kaynak: deste.md) */
+const KARTLAR = [
+  {p:5, t:"Mesajına saatler sonra tek kelimeyle döndü: \"aynen\"."},
+  {p:5, t:"Story'ne bakıyor ama mesajına cevap vermiyor."},
+  {p:5, t:"\"Ne yiyelim?\" diye sorunca \"fark etmez\" dedi, sonra her öneriyi reddetti."},
+  {p:5, t:"Doğum gününü Instagram sayesinde hatırladı."},
+  {p:5, t:"Hesap gelince tam o an tuvalete gitti."},
+  {p:5, t:"Telefonunda seni hâlâ soyadınla kayıtlı tutuyor."},
+  {p:5, t:"\"Çok yoğunum\" diyor ama oyunda online."},
+  {p:5, t:"\"Geliyorum\" yazdı, 40 dakika sonra evden çıktı."},
+  {p:5, t:"Önerdiğin diziyi ilk bölümde bıraktı, kendi dizisini sana zorla izletti."},
+  {p:5, t:"Kendi fotoğraflarını çektiriyor, seninkini bir kere bile çekmedi."},
+  {p:5, t:"Buluşmada telefonunu ekranı yukarı bakacak şekilde masaya koydu."},
+  {p:5, t:"Her konuşmayı bir şekilde kendine getiriyor."},
+  {p:5, t:"Sesli mesajına yazıyla, yazına sesli mesajla cevap veriyor."},
+  {p:5, t:"Planı her seferinde sen yapıyorsun, o sadece \"olur\" diyor."},
+  {p:5, t:"Senin anlattığın şakayı başkalarına kendi esprisiymiş gibi anlattı."},
+  {p:5, t:"Çiçek yerine çiçek emojisi gönderdi."},
+  {p:5, t:"Ciddi bir şey anlatırken bile \"😂\" atıyor."},
+  {p:5, t:"Buluşmaya hep geç kalıyor, bir kere bile özür dilemedi."},
+  {p:5, t:"Restoranı hep o seçiyor, hep aynı yer."},
+  {p:5, t:"Ortak fotoğraflarınızda hep kendi iyi çıktığı kareyi paylaşıyor."},
+  {p:15, t:"Eski sevgilisinden \"aslında çok tatlıydı\" diye bahsediyor."},
+  {p:15, t:"Seni arkadaşlarıyla tanıştırmaktan kaçınıyor."},
+  {p:15, t:"Sadece canı sıkılınca ya da gece 2'de yazıyor."},
+  {p:15, t:"\"Biz ne olduk?\" sorusunu her seferinde geçiştiriyor."},
+  {p:15, t:"Sınav ya da mülakat gününde bir \"kolay gelsin\" bile yazmadı."},
+  {p:15, t:"Tartışmayı hep senin eski hatalarına bağlıyor."},
+  {p:15, t:"Sözlerini sadece aklına gelirse tutuyor."},
+  {p:15, t:"İşini, okulunu ya da hobini küçümsüyor."},
+  {p:15, t:"Arkadaşlarının yanında sana farklı davranıyor."},
+  {p:15, t:"Garsona ya da kuryeye kaba davrandı."},
+  {p:15, t:"İlişkinizi sosyal medyada saklıyor."},
+  {p:15, t:"Seni arkadaşlarına \"bir arkadaşım\" diye tanıttı."},
+  {p:15, t:"Her şeye \"ben böyleyim\" deyip geçiyor."},
+  {p:15, t:"Sen derdini anlatırken telefonuyla ilgileniyor."},
+  {p:15, t:"Planı iptal etti, sen üzülünce \"abartma\" dedi."},
+  {p:15, t:"Senin arkadaşlarını sürekli eleştiriyor."},
+  {p:15, t:"Eski sevgilisinin fotoğraflarını hâlâ silmemiş."},
+  {p:15, t:"Kavgadan sonra günlerce sessizliğe gömülüyor."},
+  {p:20, t:"Telefonunu senden saklıyor, şifresini de değiştirdi."},
+  {p:20, t:"Arkadaşlarınla buluşmanı sorun ediyor."},
+  {p:20, t:"Hatasını kabul etmek yerine seni suçlu hissettiriyor."},
+  {p:20, t:"Seni eski sevgilisiyle kıyasladı."},
+  {p:20, t:"Kıskançlığını \"seni çok seviyorum ondan\" diye açıklıyor."},
+  {p:20, t:"Haftalarca ortadan kayboldu, sonra hiçbir şey olmamış gibi \"naber\" yazdı."},
+  {p:20, t:"Bir şeyden hoşlanmadığını bile bile yapmaya devam ediyor."},
+  {p:20, t:"Ne zaman nasıl tepki vereceği belli değil, yanında hep diken üstündesin."},
+  {p:20, t:"Tartışmada her zaman o haklı, sen hiçbir zaman."},
+  {p:20, t:"Senin yerine kararları o veriyor."},
+  {p:20, t:"Sürekli nerede olduğunu soruyor, konum istiyor."},
+  {p:20, t:"Ne giydiğine karışıyor."},
+  {p:20, t:"Sana özel anlattığın bir şeyi başkalarına anlattı."},
+  {p:20, t:"Seninle ilgili şakaları hep başkalarının yanında yapıyor."},
+  {p:50, t:"Söyledikleri bir yerde, yaptıkları başka yerde."},
+  {p:50, t:"Yalanını yakaladın, hâlâ inkâr ediyor."},
+  {p:50, t:"Senden habersiz başka biriyle de görüşüyordu."},
+  {p:50, t:"Ayrılıp barışmak artık alışkanlık oldu."},
+  {p:50, t:"Duygularını hep \"abartıyorsun\" diye geçiştiriyor."},
+  {p:50, t:"Seni arkadaşlarından ve ailenden yavaş yavaş uzaklaştırdı."},
+  {p:50, t:"Eski sevgilisiyle hâlâ gizlice yazışıyor."},
+  {p:50, t:"Seni aldattı, sonra suçu sana attı."}
+];
+
+const CHALLENGE = [
+  "Telefonundaki son \"gece yarısı\" mesajını yüksek sesle oku.",
+  "Eskini 3 emojiyle anlat, masa kim olduğunu tahmin etsin.",
+  "Bir dakika boyunca eskini savun. Gülmek yasak.",
+  "Hayatındaki en kötü ilk buluşmayı anlat.",
+  "Bir sonraki turuna kadar herkese \"aşkım\" diye hitap et.",
+  "En son stalkladığın profili itiraf et.",
+  "Masadan biri senin adına bir ayrılık mesajı yazsın, sen dramatik şekilde oku.",
+  "Sana alınmış en tuhaf hediyeyi anlat.",
+  "Son kavganızı sağındakiyle iki kişilik bir sahne olarak canlandırın.",
+  "Sağındaki kişi sana bir soru sorsun, dürüstçe cevapla.",
+  "Instagram'da en son beğendiğin fotoğrafı herkese göster.",
+  "Masadaki herkese birer tatlı \"kırmızı bayrak\"ını söyle.",
+  "Eski sevgilinin sana taktığı lakabı itiraf et.",
+  "Bir dizi karakterini 30 saniye boyunca \"ideal sevgili\" olarak savun.",
+  "En çok mesajlaştığın 3 kişiyi masaya göster.",
+  "Bildiğin bir aşk şarkısının nakaratını en dramatik hâlinle söyle."
+];
+
+const TIERS = {5:"ufak tefek",15:"göz ardı etme",20:"ciddi ciddi",50:"kaç kanka!"};
+const COLORS = ["#E5194A","#FFE36E","#C9B6FF","#F7A6CA","#FFFFFF","#4A0A23"];
+
+/* ---------- state ---------- */
+let S = load() || fresh();
+function fresh(){
+  return {view:"home", setup:{names:["İrem","Ayris","Şevval","Zeynep"], limit:400, custom:[], ccP:15}, sound:true, game:null};
+}
+function save(){ try{ localStorage.setItem("ayril-kanka", JSON.stringify(S)); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem("ayril-kanka")); }catch(e){ return null; } }
+window.claude?.hot?.snapshot?.(()=>S);
+
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function newGame(){
+  const names = S.setup.names.map(n=>n.trim()).filter(Boolean);
+  S.game = {
+    players: names.map((n,i)=>({name:n, score:0, color:COLORS[i%COLORS.length], lastStep:0})),
+    custom:(S.setup.custom||[]).slice(), turn:0, deck:shuffle(KARTLAR.map((_,i)=>i).concat((S.setup.custom||[]).map((_,i)=>KARTLAR.length+i))), chDeck:shuffle(CHALLENGE.map((_,i)=>i)),
+    card:null, flipped:false, history:[], overlay:null, limit:S.setup.limit
+  };
+  S.view="game"; save(); render();
+}
+
+/* ---------- svg bits ---------- */
+const HEARTP = "M0 40 C -30 20 -50 2 -46 -20 C -43 -36 -26 -42 -14 -34 C -8 -30 -4 -25 0 -18 C 4 -25 8 -30 14 -34 C 26 -42 43 -36 46 -20 C 50 2 30 20 0 40 Z";
+function flagSVG(label=true){
+  return `<svg viewBox="0 0 150 170" ${label?'role="img" aria-label="Kalp şeklinde kırmızı bayrak"':'aria-hidden="true"'}>
+    <g transform="rotate(-10 75 85)">
+      <rect x="22" y="22" width="12" height="140" rx="6" fill="#fff" stroke="#fff" stroke-width="14"/>
+      <path d="${HEARTP}" transform="translate(76 70) rotate(90)" fill="#fff" stroke="#fff" stroke-width="16" stroke-linejoin="round"/>
+      <rect x="22" y="22" width="12" height="140" rx="6" fill="#4A0A23"/>
+      <path d="${HEARTP}" transform="translate(76 70) rotate(90)" fill="#E5194A" stroke="#4A0A23" stroke-width="5" stroke-linejoin="round"/>
+      <ellipse cx="96" cy="44" rx="10" ry="6" transform="rotate(-30 96 44)" fill="#fff" opacity=".85"/>
+      <circle cx="28" cy="20" r="11" fill="#FFE36E" stroke="#4A0A23" stroke-width="5"/>
+    </g></svg>`;
+}
+const MINI_FLAG = `<svg viewBox="0 0 150 170" aria-hidden="true"><g transform="rotate(-10 75 85)"><rect x="22" y="22" width="12" height="140" rx="6" fill="#4A0A23"/><path class="fl" d="${HEARTP}" transform="translate(76 70) rotate(90)" fill="#E5194A" stroke="#4A0A23" stroke-width="8"/></g></svg>`;
+const BACK_DECOR = `<svg viewBox="0 0 250 350" preserveAspectRatio="none" aria-hidden="true">
+  <g fill="none" stroke="#FFC2DD" stroke-width="3" opacity=".55"><path d="M-10 46 c25 -22 50 22 75 0 s50 22 75 0 s50 22 75 0 s50 22 75 0"/><path d="M-10 312 c25 -22 50 22 75 0 s50 22 75 0 s50 22 75 0 s50 22 75 0"/></g>
+  <path d="M46 92 Q50 106 64 110 Q50 114 46 128 Q42 114 28 110 Q42 106 46 92Z" fill="#FFE36E"/>
+  <path d="M204 236 Q207 246 217 249 Q207 252 204 262 Q201 252 191 249 Q201 246 204 236Z" fill="#FFE36E"/></svg>`;
+const BACK_FACE = `${BACK_DECOR}<div class="bw"><span>Ayrıl</span><span>Kanka!</span></div>`;
+
+function cardAt(g,i){ return i>=KARTLAR.length ? {...(g.custom||[])[i-KARTLAR.length], custom:true} : KARTLAR[i]; }
+/* ---------- ses ve titreşim ---------- */
+let AC=null;
+function sfx(kind){
+  if(S.sound===false) return;
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    const t0=AC.currentTime;
+    const notes = {flip:[[660,.0,.06],[990,.05,.07]], yes:[[523,0,.09],[659,.08,.09],[784,.16,.16]],
+      challenge:[[392,0,.12],[466,.12,.12],[392,.24,.12],[523,.36,.2]], end:[[392,0,.25],[370,.25,.25],[349,.5,.25],[311,.75,.6]]}[kind]||[];
+    notes.forEach(([f,d,len])=>{
+      const o=AC.createOscillator(), gn=AC.createGain();
+      o.type = kind==="end"?"sawtooth":"triangle"; o.frequency.value=f;
+      gn.gain.setValueAtTime(0.0001,t0+d); gn.gain.exponentialRampToValueAtTime(kind==="end"?0.08:0.18,t0+d+0.015); gn.gain.exponentialRampToValueAtTime(0.0001,t0+d+len);
+      o.connect(gn).connect(AC.destination); o.start(t0+d); o.stop(t0+d+len+0.05);
+    });
+  }catch(e){}
+}
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
+
+/* ---------- render ---------- */
+const app = document.getElementById("app");
+function h(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function render(){
+  if(S.view==="home") app.innerHTML = homeView();
+  else if(S.view==="setup") app.innerHTML = setupView();
+  else if(S.view==="rules") app.innerHTML = rulesView();
+  else app.innerHTML = gameView();
+}
+
+function homeView(){
+  const resume = S.game && !S.game.over;
+  return `<section class="home">
+    <div class="logo">${flagSVG()}</div>
+    <div style="display:flex;flex-direction:column;gap:14px;align-items:center">
+      <h1 class="sticker"><span>Ayrıl</span><span>Kanka!</span></h1>
+      <p class="hand">kız gecesinin kırmızı bayrak oyunu</p>
+      <p class="tag">Yaşadıysan puanı al. 400'e ilk ulaşan kaybeder ve o telefonu açar.</p>
+    </div>
+    <div class="actions">
+      ${resume?`<button class="btn btn-wine" data-a="resume">Oyuna dön</button>`:""}
+      <button class="btn ${resume?"btn-ghost":"btn-wine"}" data-a="setup">Yeni oyun</button>
+      <button class="btn btn-link" data-a="rules">Nasıl oynanır?</button>
+    </div>
+  </section>`;
+}
+
+function setupView(){
+  const n = S.setup.names;
+  return `<div class="topbar"><button class="back" data-a="home">‹ Geri</button><span class="eyebrow">Oyuncular</span></div>
+  <section class="sheet">
+    <h2>Masada kim var?</h2>
+    <div class="players">
+      ${n.map((v,i)=>`<div class="prow">
+        <span class="dot" style="background:${COLORS[i%COLORS.length]}"></span>
+        <input id="p${i}" data-i="${i}" value="${h(v)}" placeholder="Oyuncu ${i+1}" maxlength="16" aria-label="Oyuncu ${i+1} adı">
+        <button data-a="del" data-i="${i}" aria-label="Oyuncuyu çıkar" ${n.length<=2?"disabled style='opacity:.25'":""}>×</button>
+      </div>`).join("")}
+    </div>
+    ${n.length<6?`<button class="btn btn-ghost" data-a="add">+ Oyuncu ekle</button>`:""}
+    <div class="field">
+      <span class="eyebrow">Kaybetme sınırı</span>
+      <div class="seg">
+        ${[200,300,400].map(v=>`<button data-a="limit" data-v="${v}" aria-pressed="${S.setup.limit===v}">${v} puan</button>`).join("")}
+      </div>
+      <p class="hint">En keyiflisi 4–6 kişi ve 400 puan. Kısa bir tur için 200 seç. Her 100 puanda bir challenge kartı çıkar.</p>
+    </div>
+    <div class="field">
+      <span class="eyebrow">Masaya özel kartlar</span>
+      <p class="hint">Grubunuzun iç esprilerini, başınıza gelenleri yazın. Desteye karışır.</p>
+      ${(S.setup.custom||[]).map((c,i)=>`<div class="ccrow"><b>${c.p}</b><span>${h(c.t)}</span><button data-a="ccdel" data-i="${i}" aria-label="Kartı sil">×</button></div>`).join("")}
+      <label for="cc-text" class="hint" style="font-weight:600;color:var(--ink)">Yeni kart</label>
+      <textarea id="cc-text" rows="2" maxlength="120" placeholder="Örn: Doğum gününde hediye yerine kendi fotoğrafını çerçeveletti.">${h(S.setup.ccDraft||"")}</textarea>
+      <div class="seg four">
+        ${[5,15,20,50].map(v=>`<button data-a="ccp" data-v="${v}" aria-pressed="${(S.setup.ccP||15)===v}">${v}</button>`).join("")}
+      </div>
+      <button class="btn btn-ghost" data-a="ccadd">+ Kartı desteye ekle</button>
+    </div>
+  </section>
+  <button class="btn btn-wine" data-a="start" ${n.filter(x=>x.trim()).length<2?"disabled":""}>Kartları dağıt</button>`;
+}
+
+function rulesView(){
+  return `<div class="topbar"><button class="back" data-a="home">‹ Geri</button><span class="eyebrow">Kurallar</span></div>
+  <section class="sheet">
+    <h2>Nasıl oynanır?</h2>
+    <ol class="rules">
+      <li>Sırası gelen, desteden bir kart çeker ve yüksek sesle okur.</li>
+      <li>Karttaki şeyi bir ilişkinde yaşadıysan <b>Yaşadım</b>'a bas, kartın puanı skoruna eklenir. Yaşamadıysan puan yok.</li>
+      <li>Skorun her 100 puanı geçtiğinde bir <b>Challenge kartı</b> çekersin ve yazanı yapmak zorundasın.</li>
+      <li>Sınıra (ör. 400) ilk ulaşan kaybeder. Kaybeden, bu deneyimleri yaşadığı kişiyi arar: ilişkisi sürüyorsa "konuşmamız lazım" der, bittiyse yüzleşir.</li>
+    </ol>
+    <div class="field">
+      <span class="eyebrow">Kart puanları</span>
+      <div class="tiers">${Object.entries(TIERS).map(([p,l])=>`<div class="tier" style="background:${p==50?"var(--cherry);color:#fff":p==20?"#FFE3EF":p==15?"var(--soft)":"#fff"}"><b>${p}</b>${l}</div>`).join("")}</div>
+    </div>
+  </section>
+  <button class="btn btn-wine" data-a="setup">Hadi oynayalım</button>`;
+}
+
+function gameView(){
+  const g = S.game, me = g.players[g.turn], c = g.card!=null?cardAt(g,g.card):null;
+  const chips = g.players.map((p,i)=>`<div class="chip ${i===g.turn?"on":""}">
+      <span class="nm">${h(p.name)}</span>
+      <span class="sc">${p.score}<small> / ${g.limit}</small></span>
+      <span class="bar"><i style="width:${Math.min(100,p.score/g.limit*100)}%"></i></span>
+    </div>`).join("");
+  return `<div class="topbar"><button class="back" data-a="home">‹ Menü</button><button class="snd" data-a="sound" aria-pressed="${S.sound!==false}">${S.sound!==false?"Ses açık":"Ses kapalı"}</button></div>
+    <div class="board">${chips}</div>
+    <div class="turn"><span class="eyebrow">Sıra sende</span><h2>${h(me.name)}<em>,</em> kart çek!</h2></div>
+    <div class="table" id="table">
+      <div class="stack"><span></span><span></span></div>
+      <button class="card-btn" data-a="draw" aria-label="${c?"Kart açık":"Kart çek"}" ${c&&g.flipped?"disabled":""}>
+        <div class="card ${c?("t"+c.p):""} ${g.flipped?"flip":""}" id="card">
+          <div class="face back-face">${BACK_FACE}</div>
+          <div class="face front-face">
+            ${c?`<div class="pts"><b>${c.p}</b><span>${TIERS[c.p]}</span></div>
+            <p class="txt">${h(c.t)}</p>
+            <div class="foot"><span>${g.card>=KARTLAR.length?"Masaya özel kart":"#"+(g.card+1)+" / "+KARTLAR.length}</span>${MINI_FLAG}</div>`:""}
+          </div>
+        </div>
+      </button>
+      ${!g.flipped?`<p class="tap-hint">desteye dokun, kartını çek</p>`:""}
+    </div>
+    <div class="verdict">
+      <button class="btn btn-ghost" data-a="no" ${g.flipped?"":"disabled"}>Yaşamadım</button>
+      <button class="btn btn-wine" data-a="yes" ${g.flipped?"":"disabled"}>Yaşadım <small>+${c?c.p:0}</small></button>
+    </div>
+    <div class="foot-row"><span>${g.history.length} kart oynandı</span>${g.history.length?`<button data-a="undo">Son hamleyi geri al</button>`:""}</div>
+    ${g.overlay?overlayView():""}`;
+}
+
+function overlayView(){
+  const g=S.game, o=g.overlay;
+  if(o.type==="handoff"){
+    return `<div class="overlay" role="dialog" aria-modal="true" aria-label="Sıra değişiyor"><div class="modal handoff">
+      <span class="eyebrow">Sıra değişiyor</span>
+      <p class="hand" style="font-size:28px">telefonu uzat</p>
+      <h2 class="sticker">${h(g.players[g.turn].name)}!</h2>
+      <button class="btn btn-wine" data-a="closeOverlay">Hazırım, kart çekeyim</button>
+    </div></div>`;
+  }
+  if(o.type==="challenge"){
+    return `<div class="overlay" role="dialog" aria-modal="true" aria-label="Challenge kartı"><div class="modal challenge">
+      <span class="tagc">CHALLENGE · ${o.step} PUAN</span>
+      <p class="who">${h(g.players[o.who].name)}, kaçış yok:</p>
+      <h3>${h(CHALLENGE[o.ch])}</h3>
+      <button class="btn btn-wine" data-a="closeOverlay">Yaptım</button>
+    </div></div>`;
+  }
+  const loser = g.players[o.who];
+  const rank = g.players.slice().sort((a,b)=>a.score-b.score);
+  return `<div class="overlay" role="dialog" aria-modal="true" aria-label="Oyun bitti"><div class="modal end">
+    <span class="eyebrow">${loser.score} puan · oyun bitti</span>
+    <h2 class="sticker"><span>Ayrıl</span><span>Kanka!</span></h2>
+    <p class="loser"><b>${h(loser.name)}</b>, kırmızı bayrakları toplayan sen oldun.</p>
+    <div class="dare"><b>Ceza zamanı</b>Bu deneyimleri yaşadığın kişiyi şimdi ara. İlişkin sürüyorsa "konuşmamız lazım" de; bittiyse yüzleş. Masa dinliyor.</div>
+    <ol class="rank">${rank.map(p=>`<li><span>${h(p.name)}</span><span>${p.score}</span></li>`).join("")}</ol>
+    <div class="row">
+      <button class="btn btn-wine" data-a="again">Aynı ekiple tekrar</button>
+      <button class="btn btn-link" data-a="home">Ana menü</button>
+    </div>
+  </div></div>`;
+}
+
+/* ---------- actions ---------- */
+function draw(){
+  const g=S.game; if(g.flipped||g.overlay) return;
+  if(!g.deck.length) g.deck = shuffle(KARTLAR.map((_,i)=>i).concat((g.custom||[]).map((_,i)=>KARTLAR.length+i)));
+  g.card = g.deck.pop(); g.flipped=false; render(); sfx("flip"); buzz(15);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ g.flipped=true; document.getElementById("card")?.classList.add("flip"); setTimeout(()=>{render();save();},420); }));
+}
+function decide(yes){
+  const g=S.game; if(!g.flipped) return;
+  const p=g.players[g.turn], c=cardAt(g,g.card);
+  const snap = JSON.stringify({players:g.players,turn:g.turn});
+  g.history.push(snap);
+  if(yes){
+    p.score += c.p;
+    if(p.score>=g.limit){ g.overlay={type:"end",who:g.turn}; g.over=true; }
+    else {
+      const step = Math.floor(p.score/100)*100;
+      if(step>p.lastStep && step>0){
+        p.lastStep=step;
+        if(!g.chDeck.length) g.chDeck=shuffle(CHALLENGE.map((_,i)=>i));
+        g.overlay={type:"challenge",who:g.turn,step,ch:g.chDeck.pop()};
+      }
+    }
+  }
+  const scorer=g.turn;
+  g.card=null; g.flipped=false;
+  if(!g.over){ g.turn=(g.turn+1)%g.players.length; if(!g.overlay && g.players.length>1) g.overlay={type:"handoff"}; }
+  render(); save();
+  if(yes) floatPlus(c.p, scorer);
+  if(g.overlay&&g.overlay.type==="end"){ sfx("end"); buzz([80,60,80,60,200]); }
+  else if(g.overlay&&g.overlay.type==="challenge"){ sfx("challenge"); buzz([40,40,40]); }
+  else if(yes){ sfx("yes"); buzz(35); }
+}
+function floatPlus(n){
+  const t=document.getElementById("table"); if(!t) return;
+  const el=document.createElement("div"); el.className="plus"; el.textContent="+"+n; t.appendChild(el);
+  setTimeout(()=>el.remove(),1000);
+}
+
+app.addEventListener("click",e=>{
+  const b=e.target.closest("[data-a]"); if(!b) return;
+  const a=b.dataset.a;
+  if(a==="home"){S.view="home";}
+  else if(a==="setup"){S.view="setup";}
+  else if(a==="rules"){S.view="rules";}
+  else if(a==="resume"){S.view="game";}
+  else if(a==="add"){S.setup.names.push("");}
+  else if(a==="del"){ if(S.setup.names.length>2) S.setup.names.splice(+b.dataset.i,1); }
+  else if(a==="limit"){S.setup.limit=+b.dataset.v;}
+  else if(a==="ccp"){S.setup.ccP=+b.dataset.v;}
+  else if(a==="ccadd"){ const el=document.getElementById("cc-text"); const t=(el?.value||"").trim(); if(!t) return; S.setup.custom=S.setup.custom||[]; S.setup.custom.push({p:S.setup.ccP||15,t}); S.setup.ccDraft=""; }
+  else if(a==="ccdel"){ S.setup.custom.splice(+b.dataset.i,1); }
+  else if(a==="sound"){ S.sound = S.sound===false; if(S.sound) sfx("yes"); }
+  else if(a==="start"){ newGame(); return; }
+  else if(a==="draw"){ draw(); return; }
+  else if(a==="yes"||a==="no"){ decide(a==="yes"); return; }
+  else if(a==="undo"){ const g=S.game; const s=JSON.parse(g.history.pop()); g.players=s.players; g.turn=s.turn; g.card=null; g.flipped=false; g.overlay=null; g.over=false; }
+  else if(a==="closeOverlay"){ const g=S.game; const wasCh=g.overlay&&g.overlay.type==="challenge"; g.overlay = (wasCh && !g.over && g.players.length>1) ? {type:"handoff"} : null; }
+  else if(a==="again"){ S.setup.names=S.game.players.map(p=>p.name); newGame(); return; }
+  save(); render();
+  if(a==="add") document.getElementById("p"+(S.setup.names.length-1))?.focus();
+  if(a==="ccadd") document.getElementById("cc-text")?.focus();
+});
+app.addEventListener("input",e=>{
+  if(e.target.id==="cc-text"){ S.setup.ccDraft=e.target.value; save(); return; }
+  if(e.target.dataset.i!=null){ S.setup.names[+e.target.dataset.i]=e.target.value; save();
+    const st=app.querySelector('[data-a="start"]'); if(st) st.disabled = S.setup.names.filter(x=>x.trim()).length<2; }
+});
+
+function start(data){ if(data && data.view) S=data; render(); }
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+<script>if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+</body>
+</html>
